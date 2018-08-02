@@ -6,7 +6,10 @@ let schema = buildSchema(`
     type Query {
         course(id: Int!): Course
         courses(topic: String): [Course]
-    },
+    }
+    type Mutation {
+        updateCourseTopic(id: Int!, topic: String!): Course
+    }
     type Course {
         id: Int
         title: String
@@ -42,6 +45,15 @@ let coursesData = [
         url: 'https://codingthesmartway.com/courses/understand-javascript/'
     }
 ];
+let updateCourseTopic = function ({id, topic}) {
+    coursesData.map(course => {
+        if (course.id === id) {
+            course.topic = topic;
+            return course;
+        }
+    });
+    return coursesData.filter(course => course.id === id)[0];
+};
 let getCourse = function (args) {
     let id = args.id;
     return coursesData.filter(course => {
@@ -58,13 +70,30 @@ let getCourses = function (args) {
 };
 let root = {
     course: getCourse,
-    courses: getCourses
+    courses: getCourses,
+    updateCourseTopic: updateCourseTopic
 };
 // Create an express server and a GraphQL endpoint
 let app = express();
-app.use('/graphql', express_graphql({
+app.use('/graph', express_graphql({
     schema: schema,
     rootValue: root,
     graphiql: true
 }));
 app.listen(4000, () => console.log('Express GraphQL Server Now Running On localhost:4000/graphql'));
+
+
+//In graphiql
+// mutation updateCourseTopic($id: Int!, $topic: String!){
+//     updateCourseTopic(id:$id, topic:$topic){
+//     ...courseFields
+//     }
+// }
+//
+// fragment courseFields on Course{
+//     id
+//     title
+//     topic
+//     description
+// }
+//
